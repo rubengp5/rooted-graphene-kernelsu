@@ -42,11 +42,11 @@ else
     pushd aosp/ || exit
       if [[ -v KERNEL_IMAGE_REPO ]]; then
         echo "Fetching stock defconfig from ${KERNEL_IMAGE_REPO}..."
-        # git clone --depth=1 --branch "${GRAPHENEOS_VERSION}" --single-branch "${KERNEL_IMAGE_REPO}" kernel_image/
-        # echo "Extracting kernel image configuration..."
-        # lz4 -d kernel_image/grapheneos/Image.lz4 kernel_image/Image
-        # ./scripts/extract-ikconfig kernel_image/Image > arch/arm64/configs/stock_defconfig
-        # rm -rf kernel_image/
+        git clone --depth=1 --branch "${GRAPHENEOS_VERSION}" --single-branch "${KERNEL_IMAGE_REPO}" kernel_image/
+        echo "Extracting kernel image configuration..."
+        lz4 -d kernel_image/grapheneos/Image.lz4 kernel_image/Image
+        ./scripts/extract-ikconfig kernel_image/Image > arch/arm64/configs/stock_defconfig
+        rm -rf kernel_image/
       else
         echo "KERNEL_IMAGE_REPO not set, skipping fetching defconfig."
       fi
@@ -63,6 +63,10 @@ else
         echo "Using KernelSU version: ${KERNELSU_VERSION}"
         sed -i '/^ccflags-y += -DKSU_GIT_VERSION=/d' kernel/Makefile
         sed -i '1s/^/ccflags-y += -DKSU_GIT_VERSION='"${KERNELSU_VERSION}"'\n/' kernel/Makefile
+        if [ -f kernel/Kbuild ]; then
+          sed -i '/^ccflags-y += -DKSU_VERSION=/d' kernel/Kbuild
+          sed -i '1s/^/ccflags-y += -DKSU_VERSION='"${KERNELSU_VERSION}"'\n/' kernel/Kbuild
+        fi
       popd || exit
 
       echo "Fetching SUSFS from branch ${SUSFS_BRANCH}..."
@@ -79,7 +83,15 @@ else
       popd || exit
 
       echo "3. Applying SUSFS kernel patches..."
+      # Temporarily strip GrapheneOS specific headers to allow patch to apply cleanly
+      sed -i '/#include <linux\/random.h>/d' fs/exec.c
+      sed -i '/#include <trace\/hooks\/blk.h>/d' fs/namespace.c
+      
       patch -p1 < "susfs4ksu/kernel_patches/${SUSFS_KERNEL_PATCH}"
+      
+      # Restore the headers
+      sed -i '/^#ifndef __GENKSYMS__/i #include <linux\/random.h>' fs/exec.c
+      sed -i '/#include "internal.h"/a #include <trace\/hooks\/blk.h>' fs/namespace.c
 
       echo "3. Copying SUSFS files to kernel..."
       cp -v susfs4ksu/kernel_patches/fs/*.c fs/

@@ -18,7 +18,7 @@ ADEV_CACHE      ?= "$(ROOT_DIR)/adevtool_cache"
 
 COMMON_PODMAN_FLAGS := \
 	--rm \
-	--pids-limit=0 \
+	--pids-limit=-1 \
 	-v "$(PWD)":/src:Z \
 	-v "$(OUTPUT_DIR)":/output \
 	-e USE_CCACHE=0 \
@@ -45,8 +45,12 @@ build-podman-image:
 # Build kernel using podman
 build-kernel:
 	$(call check_device)
-	podman run --rm --pids-limit=0 -v "$(PWD)":/src:Z -v "$(OUTPUT_DIR)":/output -e USE_CCACHE=0 -w /src buildrom \
-		/bin/bash /src/scripts/build_kernel.sh $(DEVICE)
+	podman run --rm --pids-limit=-1 -v "$(PWD)":/src:Z -v "$(OUTPUT_DIR)":/output -e USE_CCACHE=0 -w /src buildrom \
+		/bin/bash -c 'export BUILD_METADATA_FILE=$$(python3 scripts/generate_env.py $(DEVICE) local local /output) && \
+		python3 scripts/load_env.py $$BUILD_METADATA_FILE > .env && \
+		echo "BUILD_METADATA_FILE=$$BUILD_METADATA_FILE" >> .env && \
+		while IFS="=" read -r key value; do export "$$key=$$value"; done < .env && \
+		/bin/bash /src/scripts/build_kernel.sh $(DEVICE)'
 
 # Clean build directories
 clean:

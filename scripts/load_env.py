@@ -5,7 +5,7 @@ import sys
 def main(filename):
     with open(filename, "r") as f:
         env = json.load(f)
-        for key, value in env.items():
+        for key, value in env["env"].items():
             print(f"{key}={value}")
 
 
