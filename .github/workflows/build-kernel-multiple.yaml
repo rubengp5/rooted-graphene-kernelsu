@@ -31,7 +31,7 @@ jobs:
           # - device-id: oriole # Pixel 6
           # - device-id: husky # Pixel 8 Pro
           # - device-id: shiba # Pixel 8
-          # - device-id: panther # Pixel 7
+          - device-id: panther # Pixel 7
           # - device-id: lynx # Pixel 7a
           # - device-id: felix # Pixel fold
 
