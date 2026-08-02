@@ -14,7 +14,8 @@
     "preinit_device": "persist"
   },
   "kernelsu": {
-    "branch": "main"
+    "repo": "https://github.com/pershoot/KernelSU-Next.git",
+    "branch": "dev-susfs"
   },
   "susfs": {
     "branch": "gki-android14-6.1",

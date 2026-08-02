@@ -53,8 +53,10 @@ else
 
       # apply kernelsu
       echo "Setting up KernelSU..."
-      git submodule add https://github.com/tiann/KernelSU.git
-      curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${KERNELSU_BRANCH}"
+      KERNELSU_URL=${KERNELSU_REPO:-"https://github.com/tiann/KernelSU.git"}
+      KERNELSU_RAW_URL=$(echo $KERNELSU_URL | sed 's/github.com/raw.githubusercontent.com/' | sed 's/.git$//')
+      git submodule add "${KERNELSU_URL}" KernelSU
+      curl -LSs "${KERNELSU_RAW_URL}/${KERNELSU_BRANCH}/kernel/setup.sh" | bash -s "${KERNELSU_BRANCH}"
 
       # hardcode kernelsu version
       pushd KernelSU/ || exit
@@ -75,8 +77,12 @@ else
       # apply patches
       echo "=== Applying Patches ==="
       pushd KernelSU/ || exit
-        echo "1. Applying SUSFS to KernelSU..."
-        patch -p1 < "../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
+        if [[ "${KERNELSU_BRANCH}" != "dev-susfs" ]]; then
+          echo "1. Applying SUSFS to KernelSU..."
+          patch -p1 < "../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
+        else
+          echo "1. Skipping SUSFS KernelSU patch (already included in dev-susfs)..."
+        fi
 
         # echo "2. Applying 'additional signatures' patch..."
         # patch -p1 < "../../../patches/0001-add-managed-sigs.patch"

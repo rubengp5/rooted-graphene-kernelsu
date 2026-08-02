@@ -28,11 +28,16 @@ def get_latest_graphene_release(device, branch):
     return r.text.split(" ")[0]
 
 
-def get_latest_ksu_commit(branch_name):
+def get_latest_ksu_commit(branch_name, repo_url):
     if os.getenv("KERNELSU_VERSION"):
         return os.getenv("KERNELSU_VERSION")
 
-    r = requests.get(f"https://api.github.com/repos/tiann/KernelSU/commits?sha={branch_name}")
+    if repo_url and repo_url.startswith("https://github.com/"):
+        repo = repo_url.replace("https://github.com/", "").replace(".git", "")
+    else:
+        repo = "tiann/KernelSU"
+
+    r = requests.get(f"https://api.github.com/repos/{repo}/commits?sha={branch_name}")
     return r.json()[0]["sha"]
 
 
@@ -54,7 +59,7 @@ def main(device: str, repo_name: str, ref_name: str, metadata_output_dir: str):
         gos_version = get_latest_graphene_release("tokay", branch=env_vars.get("GRAPHENEOS_BRANCH", "stable"))
     else:
         gos_version = get_latest_graphene_release(device, branch=env_vars.get("GRAPHENEOS_BRANCH", "stable"))
-    ksu_version = get_latest_ksu_commit(env_vars.get("KERNELSU_BRANCH", "main"))
+    ksu_version = get_latest_ksu_commit(env_vars.get("KERNELSU_BRANCH", "main"), env_vars.get("KERNELSU_REPO"))
     susfs_version = get_latest_susfs_commit(env_vars.get("SUSFS_BRANCH"))
 
     env_vars["DEVICE_ID"] = device
