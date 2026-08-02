@@ -1,24 +1,53 @@
-# Dependencies
-- avbroot
-- custota
-- Docker
+# Rooted GrapheneOS Kernel Builder
 
-# avbroot configuration
-- avbroot passwords are stored in `~/.avbroot/passwords.sh` as:
+An automated build environment to compile the GrapheneOS kernel with **KernelSU-Next** and **SUSFS** seamlessly integrated.
+
+This project pulls the official GrapheneOS kernel sources, dynamically patches them with the `dev-susfs` branch of [pershoot/KernelSU-Next ](https://github.com/pershoot/KernelSU-Next) and [SUSFS](https://gitlab.com/simonpunk/susfs4ksu), and compiles the kernel using the GKI Bazel build system.
+
+> [!WARNING]
+> I am not responsible for bricked devices, damaged hardware, or any issues that arise from using this kernel.
+
+## Dependencies
+
+- Docker / Podman
+- Python 3
+- `lz4`
+- Optional (for full OTA signing): `avbroot`, `custota`
+
+## Configuration
+
+### Device Configuration (JSON)
+
+Each device is configured via a JSON file in the `devices/` directory. You can customize the source repos and branches for both KernelSU and SUSFS.
+
+### avbroot Configuration (Optional)
+
+If you are using this to build signed OTAs:
+- `avbroot` passwords should be stored in `~/.avbroot/passwords.sh`:
+  ```sh
+  AVB_PASSWORD="PASSWORD_HERE"
+  OTA_PASSWORD="PASSWORD_HERE"
+  export AVB_PASSWORD OTA_PASSWORD
+  ```
+- Keys and certs must be stored in `~/.avbroot/`.
+
+## Usage
+
+To compile the kernel, use the `make` command. 
+
+- `DEVICE` is the device codename (e.g., `panther`, `comet`).
+- `OUTPUT` is the path to your web directory for OTA updates, or simply a local folder for the output artifacts.
 
 ```sh
-AVB_PASSWORD="PASSWORD_HERE"
-OTA_PASSWORD="PASSWORD_HERE"
-export AVB_PASSWORD OTA_PASSWORD
-```
-- avbroot keys and certs are stored in `~/.avbroot/`
+# Clean the workspace before a fresh build
+make clean
 
-# Usage
-
-The DEVICE is the device codename (e.g. `comet`), and OUTPUT is the path to your web directory which you wish to serve the OTA updates from (i.e. configure custota to use this URL.)
-
-```sh
-make -e DEVICE=<device> -e OUTPUT=<output_path>
+# Start the kernel build
+make -e DEVICE=panther -e OUTPUT=./output
 ```
 
-You will, of course, need to add a .sh file for your device to the `devices/` directory and add necessary device-specific configuration there.
+### Output Artifacts
+
+Once the build completes successfully:
+- **Flashable Zip**: A flashable kernel zip will be generated in `build_output/`.
+- **Raw Artifacts**: The raw kernel components (`Image`, `Image.lz4`, `dtb.img`, `dtbo.img`, and `.ko` modules) will be available in `kernel_out/`. These can be used to replace the prebuilt kernel files in a GrapheneOS source tree for a full OS build.
