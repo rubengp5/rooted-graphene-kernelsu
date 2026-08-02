@@ -2,7 +2,7 @@
 
 An automated build environment to compile the GrapheneOS kernel with **KernelSU-Next** and **SUSFS** seamlessly integrated.
 
-This project pulls the official GrapheneOS kernel sources, dynamically patches them with the `dev-susfs` branch of [pershoot/KernelSU-Next ](https://github.com/pershoot/KernelSU-Next) and [SUSFS](https://gitlab.com/simonpunk/susfs4ksu), and compiles the kernel using the GKI Bazel build system.
+This project pulls the official GrapheneOS kernel sources, dynamically patches them with the `dev-susfs` branch of [pershoot/KernelSU-Next ](https://github.com/pershoot/KernelSU-Next) and [simonpunk/SUSFS](https://gitlab.com/simonpunk/susfs4ksu), and compiles the kernel using the GKI Bazel build system.
 
 > [!WARNING]
 > I am not responsible for bricked devices, damaged hardware, or any issues that arise from using this kernel.
